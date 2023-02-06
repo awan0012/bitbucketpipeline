@@ -1,0 +1,11 @@
+image: node:12
+
+pipelines:
+  branches:
+    bugfix/*:
+      - step:
+          name: Build and Test
+          script:
+            - echo "Building and testing application..."
+            - npm install
+            - npm test
