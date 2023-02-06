@@ -1,0 +1,18 @@
+image: node:12
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Verify Merge Checks
+          script:
+            - echo "Verifying merge checks..."
+            - if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" != "master" ]; then echo "Error: Direct check-in to master branch is not allowed, only via pull request"; exit 1; fi
+            - if [ "${BITBUCKET_PR_FROM_TYPE}" != "BRANCH" ]; then echo "Error: Changes can only be made via pull request from a branch"; exit 1; fi
+            - if [ "${BITBUCKET_PR_APPROVALS}" -lt 1 ]; then echo "Error: At least 1 approval is required for merging"; exit 1; fi
+            - if [ "${BITBUCKET_PR_TASKS}" -gt 0 ]; then echo "Error: Unresolved pull request tasks exist"; exit 1; fi
+            - if [ "${BITBUCKET_COMMIT_STATE}" != "SUCCESSFUL" ]; then echo "Error: Last commit does not have at least 1 successful build"; exit 1; fi
+            - if [ "${BITBUCKET_COMMIT_STATE}" == "FAILED" ]; then echo "Error: Last commit has a failed build"; exit 1; fi
+            - if [ "${BITBUCKET_COMMIT_STATE}" == "INPROGRESS" ]; then echo "Error: Last commit build is still in progress"; exit 1; fi
+            - if [ "${BITBUCKET_PR_BEHIND_BY}" -gt 1 ]; then echo "Error: Branch is more than 1 commit behind the destination branch"; exit 1; fi
+            - echo "Merge checks passed"
